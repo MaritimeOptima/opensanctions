@@ -428,6 +428,9 @@ def parse_entry(context: Context, target: Element, programs, places):
         value = other.text.strip()
         if not value:
             continue
+        # We only care about the other field if there is an IMO there
+        if "imo" not in value.lower():
+            continue
 
         source_value = TextSourceValue(
             key_parts=value, label="other-information", text=value
