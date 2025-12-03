@@ -444,6 +444,7 @@ def parse_entry(context: Context, target: Element, programs, places):
             source_value=source_value,
             original_extraction=extraction,
             origin=LLM_VERSION,
+            default_accepted=True,
         )
 
         if not review.accepted:
