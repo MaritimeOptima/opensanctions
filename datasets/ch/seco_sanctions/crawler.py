@@ -553,7 +553,6 @@ def parse_entry(
     entity.add("notes", h.clean_note("\n\n".join(notes)))
 
     crawl_other_info(context, entity_ssid, entity, node)
-
     for relation in node.findall("./relation"):
         rel_type = relation.get("relation-type")
         target_id = context.make_slug(relation.get("target-id"))
