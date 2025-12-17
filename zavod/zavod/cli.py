@@ -56,10 +56,13 @@ def _load_datasets(paths: List[Path]) -> Dataset:
 
 @click.group(help="Zavod data factory")
 @click.option("--debug", is_flag=True, default=False)
-def cli(debug: bool = False) -> None:
+@click.option("--error", is_flag=True, default=False)
+def cli(debug: bool = False, error: bool = False) -> None:
     settings.DEBUG = debug
+    settings.ERROR = error
 
     level = logging.DEBUG if debug else logging.INFO
+    level = logging.ERROR if error else level
     configure_logging(level=level)
     create_db()
 
