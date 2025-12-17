@@ -59,7 +59,6 @@ def _load_datasets(paths: List[Path]) -> Dataset:
 @click.option("--error", is_flag=True, default=False)
 def cli(debug: bool = False, error: bool = False) -> None:
     settings.DEBUG = debug
-    settings.ERROR = error
 
     level = logging.DEBUG if debug else logging.INFO
     level = logging.ERROR if error else level
