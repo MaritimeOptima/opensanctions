@@ -374,7 +374,7 @@ def review_extraction(
     original_extraction: ModelType,
     origin: str,
     crawler_version: int = 1,
-    default_accepted: bool = False,
+    default_accepted: bool = True,
 ) -> Review[ModelType]:
     """
     Ensures a Review exists for the given key to allow human review of automated
