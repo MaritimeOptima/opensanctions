@@ -3,23 +3,26 @@ import hashlib
 import random
 import re
 import string
+import json
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from enum import Enum
 from normality import squash_spaces
 from os import environ as env
-from typing import Optional, List
+from typing import Dict, Optional, List
 
 from zavod import Context, helpers as h
+from zavod.entity import Entity
+from zavod.extract.zyte_api import fetch_json, fetch, fetch_html, ZyteAPIRequest
 
 # Note: These contain special characters, in testing use single quotes
 # to make sure variables don't get interpolated by the shell.
-WS_API_CLIENT_ID = env.get("OPENSANCTIONS_UA_WS_API_CLIENT_ID")
-WS_API_KEY = env.get("OPENSANCTIONS_UA_WS_API_KEY")
+WS_API_CLIENT_ID = env["OPENSANCTIONS_UA_WS_API_CLIENT_ID"]
+WS_API_KEY = env["OPENSANCTIONS_UA_WS_API_KEY"]
 # We keep these two secret because they were shared with us confidentially
-WS_API_DOCS_URL = env.get("OPENSANCTIONS_UA_WS_API_DOCS_URL")
-WS_API_BASE_URL = env.get("OPENSANCTIONS_UA_WS_API_BASE_URL")
+WS_API_DOCS_URL = env["OPENSANCTIONS_UA_WS_API_DOCS_URL"]
+WS_API_BASE_URL = env["OPENSANCTIONS_UA_WS_API_BASE_URL"]
+SLEEP = 10
 
 BR_RE = re.compile(r"<br\s*/?>", re.IGNORECASE)
 SPLITS = [" / ", "\r\n", "/"]
@@ -151,9 +154,12 @@ LINKS: List[WSAPILink] = [
 ]
 
 
-def generate_token(cid: str, pkey: str) -> str:
-    # 1. Create timestamp in ISO8601 (UTC)
-    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+def generate_token(context: Context, cid: str, pkey: str) -> str:
+    # Request with a timestamp that is more than 15 seconds off
+    # from the our server time will not be processed.
+    # Zyte because cloudflare is blocking us possibly based on IP reputation
+    # - I can't reproduce the block from our GCP jump host.
+    timestamp = fetch_json(context, f"{WS_API_BASE_URL}/time")["server_time"]
     # 2. Generate server instance ID (exactly 2 characters)
     sid = "".join(random.choices(string.ascii_letters + string.digits, k=2))
     # 3. Create signature = sha256(cid + sid + timestamp + pkey), lowercase hex
@@ -166,24 +172,19 @@ def generate_token(cid: str, pkey: str) -> str:
     return token
 
 
-def apply_names(context, person, person_data):
+def apply_names(context: Context, person: Entity, person_data: Dict[str, str]):
     # TODO: Switch to LLM-backed name splitting helper #2656, once we have it
     # https://github.com/opensanctions/opensanctions/issues/2656
     for key, lang in NAMES_LANG_MAP.items():
         raw_name = person_data.pop(key)
         if "/" in raw_name:
-            res = context.lookup("names", raw_name)
+            res = context.lookup("names", raw_name, warn_unmatched=True)
             if res:
                 person.add("name", res.name, lang=lang)
                 person.add("alias", res.alias, lang=lang)
-            else:
-                context.log.warning(
-                    "Multiple names in a single field, please check",
-                    field=key,
-                    raw_name=raw_name,
-                )
         else:
             person.add("name", raw_name, lang=lang)
+        h.review_names(context, person, raw_name, enable_llm_cleaning=True)
 
 
 def make_id(context: Context, entity_type: str, raw_id: str):
@@ -397,7 +398,10 @@ def crawl_vessel(context: Context, vessel_data, program_key):
     vessel.add("topics", "poi")
     if vessel_data.pop("is_shadow"):
         vessel.add("topics", "mare.shadow")
-
+    shadow_fleet_groups = vessel_data.pop("shadow_groups")
+    for group in shadow_fleet_groups:
+        if group["title"] != "Other":
+            vessel.add("notes", group["title"])
     sanction = h.make_sanction(
         context, vessel, key=program_key, program_key=program_key
     )
@@ -463,13 +467,16 @@ def crawl_rostec_structure(context: Context, structure_data):
 
 
 def check_updates(context: Context):
+    # NOTE: When debugging, uncomment the logging below ONLY in local development.
+    # Do not enable in production or commit uncommented to avoid leaking
+    # the API docs key in the logs.
     try:
-        doc = context.fetch_html(WS_API_DOCS_URL)
-    except Exception as e:
+        doc = fetch_html(context, WS_API_DOCS_URL, ".//h1[text() = 'Changelog']")
+    except Exception:  #  as e:
         context.log.warn(
             "Failed to fetch API documentation",
-            url=WS_API_DOCS_URL,
-            error=str(e),
+            # url=WS_API_DOCS_URL,
+            # error=str(e),
         )
         return
     # Have any new sections been added?
@@ -481,7 +488,7 @@ def check_updates(context: Context):
         )
         return
 
-    h.assert_dom_hash(change_log[0], "99e09c9d3c206a047e7b25083210767918f8dade")
+    h.assert_dom_hash(change_log[0], "e58955c7ef5c543cd4c2ae8975eb326287e09023")
     # Existing sections from the API documentation sidebar
     #
     # Kidnappers:
@@ -541,11 +548,22 @@ def crawl(context: Context):
     check_updates(context)
 
     for link in LINKS:
-        token = generate_token(WS_API_CLIENT_ID, WS_API_KEY)
-        headers = {"Authorization": token}
-
-        url = f"{WS_API_BASE_URL}{link.endpoint}"
-        response = context.fetch_json(url, headers=headers, cache_days=1)
+        token = generate_token(context, WS_API_CLIENT_ID, WS_API_KEY)
+        url = f"{WS_API_BASE_URL}/v1/{link.endpoint}"
+        # Zyte because cloudflare is blocking us possibly based on IP reputation
+        # - I can't reproduce the block from our GCP jump host.
+        zyte_result = fetch(
+            context,
+            ZyteAPIRequest(
+                url=url,
+                headers={
+                    "Accept": "application/json",
+                    "Authorization": token,
+                },
+            ),
+            cache_days=1,
+        )
+        response = json.loads(zyte_result.response_text)
         if not response or response.get("code") != 0:
             context.log.error("No valid data to parse", url=url, response=response)
             continue

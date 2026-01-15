@@ -93,6 +93,7 @@ lookups:
           - "VICEPRESIDENTE"
           - "VICEPRESIDENTE EJECUTIVO"
           - "ALMIRANTE"
+          - "ENCARGADO DE FINANZAS"
 
       - is_pep: false
         contains:
@@ -454,6 +455,7 @@ lookups:
           - "SUBSECRETARIO/A DE AGRICULTURA"
           - "SUBSECRETARIO/A DE TURISMO"
           - "SUPERINTENDENTE"
+          - "SUPERINTENDENTE SEGURIDAD SOCIAL"
           - "SUPERVISOR DE CONTRATOS"
           - "SUPERVISOR DE PROGRAMAS, DIRECCIÓN REGIONAL"
           - "SUPLENTE DE MINISTRO"

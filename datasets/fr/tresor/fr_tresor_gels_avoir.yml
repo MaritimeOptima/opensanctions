@@ -44,7 +44,7 @@ assertions:
     schema_entities:
       Person: 3430
       Organization: 950
-      LegalEntity: 40
+      LegalEntity: 35
       Vessel: 35
       Company: 100
   max:
@@ -913,6 +913,20 @@ lookups:
       - match: "Entités associées: PSB Bank"
         associates:
           - PSB Bank
+      - match: "Type de société: Société à responsabilité limitée"
+        props:
+          legalForm: Société à responsabilité limitée
+      - match: "Gang haïtien basé dans le quartier de Village-de-Dieu, à Port-au-Prince"
+        props:
+          jurisdiction: ht
+          address: "Village-de-Dieu, Port-au-Prince, Haïti"
+      - match: "Lieu d’enregistrement: Viêt Nam"
+        props:
+          jurisdiction: vn
+      - match: "déclarée le 6 avril 2010 à la préfecture de l'Isère (38): numéro W381009783"
+        props:
+          registrationNumber: W381009783
+          incorporationDate: 2010-04-06
 
 
   ####################################################################################################
