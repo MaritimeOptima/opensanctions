@@ -151,7 +151,7 @@ def parse_excel(context: Context, path: Path) -> None:
                 row.append(h.convert_excel_cell(xls, cell))
 
             # Skip empty rows (present because formatting_info=True)
-            if row[0] is None:
+            if not row or row[0] is None:
                 continue
             # "#" is the header for the first (index) column
             if "#" in row[0]:
