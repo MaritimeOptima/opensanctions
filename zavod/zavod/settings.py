@@ -12,6 +12,9 @@ LOG_JSON = as_bool(env_str("ZAVOD_LOG_JSON", "false"))
 # Debug mode
 DEBUG = as_bool(env_str("ZAVOD_DEBUG", "false"))
 
+# Error mode
+ERROR = as_bool(env_str("ZAVOD_ERROR", "false"))
+
 # Default paths
 _META_RESOURCE_DEFAULT = Path(__file__).parent.parent.parent / "meta"
 META_RESOURCE_PATH = Path(

@@ -56,13 +56,17 @@ def _load_datasets(paths: List[Path]) -> Dataset:
 
 @click.group(help="Zavod data factory")
 @click.option("--debug", is_flag=True, default=False)
+@click.option("--error", is_flag=True, default=False)
 @click.option(
     "--ping-heartbeat-url", default=None, help="URL to GET on successful completion"
 )
-def cli(debug: bool = False, ping_heartbeat_url: str | None = None) -> None:
+def cli(debug: bool = False, error: bool = False, ping_heartbeat_url: str | None = None) -> None:
     settings.DEBUG = debug
+    settings.ERROR = error
 
     level = logging.DEBUG if debug else logging.INFO
+    level = logging.ERROR if error else level
+
     configure_logging(level=level)
     create_db()
 
