@@ -73,7 +73,7 @@ def cli(debug: bool = False, error: bool = False, ping_heartbeat_url: str | None
 
 @cli.result_callback()
 def _ping_heartbeat(
-    result: object, debug: bool, ping_heartbeat_url: str | None
+    result: object, debug: bool, error: bool, ping_heartbeat_url: str | None
 ) -> None:
     """Run after the subcommand has completed. If a heartbeat URL is provided, send a GET request to it."""
     if ping_heartbeat_url:
