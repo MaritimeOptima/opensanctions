@@ -235,6 +235,8 @@ lookups:
           - CAATSA - IRAN
           - CAATSA - RUSSIA
         value: US-CAATSA
+      - match: CMIC-EO13959
+        value: US-NS-CMIC
       # Consolidated-list names are not mapped here: this dataset only emits
       # sanctions for SDN List entries, which are keyed by their program tag.
       # us_ofac_cons maps the consolidated lists in its own config. cf. #4980
