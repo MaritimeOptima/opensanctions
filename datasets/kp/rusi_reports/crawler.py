@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from typing import Any
 from followthemoney.property import Property
 from followthemoney.types import registry
@@ -102,7 +103,7 @@ def parse_edge(context: Context, data: dict[str, Any]) -> None:
 
 def crawl(context: Context) -> None:
     # Use local file instead of fetching
-    path = context.get_resource_path("data.json")
+    path = Path("/app/static/kp_rusi.json")
     context.export_resource(path, JSON, title=context.SOURCE_TITLE)
 
     with open(path) as fh:
