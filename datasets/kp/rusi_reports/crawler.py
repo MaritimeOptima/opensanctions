@@ -101,8 +101,8 @@ def parse_edge(context: Context, data: dict[str, Any]) -> None:
 
 
 def crawl(context: Context) -> None:
-    # The source is behind a bot challenge; fetch via Zyte
-    _, _, _, path = zyte_api.fetch_resource(context, "data.json", context.data_url)
+    # Use local file instead of fetching
+    path = context.get_resource_path("data.json")
     context.export_resource(path, JSON, title=context.SOURCE_TITLE)
 
     with open(path) as fh:
