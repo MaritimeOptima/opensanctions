@@ -5,6 +5,7 @@ from followthemoney.types import registry
 from rigour.mime.types import JSON
 
 from zavod import Context
+from zavod.extract import zyte_api
 
 # Schemata we don't ingest. Documentation/Document/Event/Source are the source's
 # provenance graph (which reports mention an entity); we keep only the entity
@@ -100,7 +101,8 @@ def parse_edge(context: Context, data: dict[str, Any]) -> None:
 
 
 def crawl(context: Context) -> None:
-    path = context.fetch_resource("data.json", context.data_url)
+    # The source is behind a bot challenge; fetch via Zyte
+    _, _, _, path = zyte_api.fetch_resource(context, "data.json", context.data_url)
     context.export_resource(path, JSON, title=context.SOURCE_TITLE)
 
     with open(path) as fh:
