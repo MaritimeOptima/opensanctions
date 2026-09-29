@@ -1,4 +1,5 @@
 import json
+import shutil
 from pathlib import Path
 from typing import Any
 from followthemoney.property import Property
@@ -6,7 +7,6 @@ from followthemoney.types import registry
 from rigour.mime.types import JSON
 
 from zavod import Context
-from zavod.extract import zyte_api
 
 # Schemata we don't ingest. Documentation/Document/Event/Source are the source's
 # provenance graph (which reports mention an entity); we keep only the entity
@@ -102,8 +102,12 @@ def parse_edge(context: Context, data: dict[str, Any]) -> None:
 
 
 def crawl(context: Context) -> None:
-    # Use local file instead of fetching
-    path = Path("/app/static/kp_rusi.json")
+    # Use local file instead of fetching since kp rusi has strict anti-crawling
+    # protection. The file lives outside the data folder (which is wiped at the
+    # start of each crawl), so copy it into the run folder before exporting it.
+    static_path = Path("/app/static/kp_rusi.json")
+    path = context.get_resource_path("source.json")
+    shutil.copyfile(static_path, path)
     context.export_resource(path, JSON, title=context.SOURCE_TITLE)
 
     with open(path) as fh:
