@@ -159,6 +159,10 @@ def run_text_prompt(
         log.info(f"GPT cache hit: {string[:50]}")
         return TextPromptResponse(content=cached_data, cache_key=cache_key)
     log.info(f"Prompting {model!r} for: {string[:50]}")
+    # Maritime: Skip OpenAI calls unless text contains "IMO"
+    if "imo" not in string.lower():
+        log.info("Skipping GPT (no IMO): %s" % string[:50])
+        return TextPromptResponse(content=string, cache_key=cache_key)
     response = client.chat.completions.create(
         model=model,
         messages=[
@@ -192,6 +196,10 @@ def run_typed_text_prompt[ResponseType: BaseModel](
     model: str = DEFAULT_MODEL,
 ) -> ResponseType:
     """Run a text prompt."""
+    # Maritime: Skip OpenAI calls unless text contains "IMO"
+    if "imo" not in string.lower():
+        log.info("Skipping GPT (no IMO): %s" % string[:50])
+        return response_type()
     client = get_client()
     cache_hash = sha1(string.encode("utf-8"))
     cache_hash.update(prompt.encode("utf-8"))
