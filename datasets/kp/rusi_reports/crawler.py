@@ -1,4 +1,6 @@
 import json
+import shutil
+from pathlib import Path
 from typing import Any
 from followthemoney.property import Property
 from followthemoney.types import registry
@@ -100,7 +102,12 @@ def parse_edge(context: Context, data: dict[str, Any]) -> None:
 
 
 def crawl(context: Context) -> None:
-    path = context.fetch_resource("data.json", context.data_url)
+    # Use local file instead of fetching since kp rusi has strict anti-crawling
+    # protection. The file lives outside the data folder (which is wiped at the
+    # start of each crawl), so copy it into the run folder before exporting it.
+    static_path = Path("/app/static/kp_rusi.json")
+    path = context.get_resource_path("source.json")
+    shutil.copyfile(static_path, path)
     context.export_resource(path, JSON, title=context.SOURCE_TITLE)
 
     with open(path) as fh:
