@@ -429,6 +429,13 @@ def crawl_other_info(
     source_value = TextSourceValue(
         key_parts=entity_ssid, label="other-information", text=node_xml
     )
+    # Maritime: zavod.extract.llm skips the LLM for text without "imo" and returns an
+    # empty extraction. Keep the raw text as notes instead of an auto-accepted empty
+    # review, which would drop it.
+    if "imo" not in source_value.value_string.lower():
+        for other in others:
+            entity.add("notes", h.clean_note(other.text))
+        return
     prompt = PROMPT.format(schema=entity.schema.name)
     extraction = run_typed_text_prompt(
         context,
