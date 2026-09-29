@@ -114,6 +114,8 @@ lookups:
         value: US-RUSHAR
       - match: UKRAINE-EO13662
         value: US-UKRRUS-REL
+      - match: UKRAINE-EO13685
+        value: US-UKRRUS-REL
       - match: CAATSA - RUSSIA
         value: US-CAATSA
       - match: BURMA-EO14014
@@ -124,6 +126,18 @@ lookups:
         # Foreign financial institutions restricted under the Iranian Financial
         # Sanctions Regulations, 31 CFR 561.
         value: US-IRAN
+      - match: IRAN-EO13902
+        value: US-IRAN
+      - match: IRAN-CON-ARMS-EO
+        value: US-IRAN
+      - match: VENEZUELA-EO13850
+        value: US-VEN
+      - match: CMIC-EO13959
+        value: US-NS-CMIC
+      - match: SDGT
+        value: US-TERR
+      - match: NS-PLC
+        value: US-NS-PLC
   script.lang:
     options:
       # - match: Arab
