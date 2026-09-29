@@ -759,15 +759,15 @@ def crawl(context: Context) -> None:
     context.flush()
     crawl_vessels(context)
     context.flush()
-    crawl_tools(context)
-    context.flush()
+    # crawl_tools(context)
+    # context.flush()
+    #
+    #    for path, program_key, topic in ENTITY_SECTIONS:
+    #       for url in crawl_listing(context, path):
+    #          crawl_entity_page(context, url, program_key=program_key, topic=topic)
+    #     context.flush()
 
-    for path, program_key, topic in ENTITY_SECTIONS:
-        for url in crawl_listing(context, path):
-            crawl_entity_page(context, url, program_key=program_key, topic=topic)
-        context.flush()
-
-    for path, program_key, topic in PERSON_SECTIONS:
-        for url in crawl_listing(context, path):
-            crawl_person_page(context, url, program_key=program_key, topic=topic)
-        context.flush()
+    #  for path, program_key, topic in PERSON_SECTIONS:
+    #     for url in crawl_listing(context, path):
+    #        crawl_person_page(context, url, program_key=program_key, topic=topic)
+    #   context.flush()
