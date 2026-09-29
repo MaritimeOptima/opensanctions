@@ -16,6 +16,10 @@ DEBUG = as_bool(env_str("ZAVOD_DEBUG", "false"))
 # Default paths. Repository-relative defaults assume zavod is installed
 # editable from its checkout inside the opensanctions repository.
 _REPO_ROOT = Path(__file__).parent.parent.parent
+
+# Error mode
+ERROR = as_bool(env_str("ZAVOD_ERROR", "false"))
+
 META_RESOURCE_PATH = Path(
     env.get("ZAVOD_META_RESOURCE_PATH") or _REPO_ROOT / "meta"
 ).resolve()

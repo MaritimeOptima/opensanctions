@@ -55,20 +55,24 @@ def _load_datasets(paths: list[Path]) -> Dataset:
 
 @click.group(help="Zavod data factory")
 @click.option("--debug", is_flag=True, default=False)
+@click.option("--error", is_flag=True, default=False)
 @click.option(
     "--ping-heartbeat-url", default=None, help="URL to GET on successful completion"
 )
-def cli(debug: bool = False, ping_heartbeat_url: str | None = None) -> None:
+def cli(debug: bool = False, error: bool = False, ping_heartbeat_url: str | None = None) -> None:
     settings.DEBUG = debug
+    settings.ERROR = error
 
     level = logging.DEBUG if debug else logging.INFO
+    level = logging.ERROR if error else level
+
     configure_logging(level=level)
     create_db()
 
 
 @cli.result_callback()
 def _ping_heartbeat(
-    result: object, debug: bool, ping_heartbeat_url: str | None
+    result: object, debug: bool, error: bool, ping_heartbeat_url: str | None
 ) -> None:
     """Run after the subcommand has completed. If a heartbeat URL is provided, send a GET request to it."""
     if ping_heartbeat_url:
