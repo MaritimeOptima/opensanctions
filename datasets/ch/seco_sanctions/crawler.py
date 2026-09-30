@@ -583,6 +583,7 @@ def parse_entry(
     # TODO: should this go into sanction:reason?
     notes = [n for (s, n) in sorted(justifications)]
     entity.add("notes", h.clean_note("\n\n".join(notes)))
+    sanction.add("reason", h.clean_note("\n\n".join(notes)))
 
     crawl_other_info(context, entity_ssid, entity, node)
 
