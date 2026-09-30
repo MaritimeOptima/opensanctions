@@ -114,7 +114,7 @@ def make_sanction(
     sanction.add("entity", entity)
     if dataset.publisher.country != "zz":
         sanction.add("country", dataset.publisher.country, origin=ORIGIN_METADATA)
-    sanction.add("authority", dataset.publisher.name, origin=ORIGIN_METADATA)
+    sanction.add("authority", dataset.publisher.name_en or dataset.publisher.name, origin=ORIGIN_METADATA)
     sanction.add("sourceUrl", dataset.url, origin=ORIGIN_METADATA)
     sanction.set("program", program_name)
     _apply_program_and_dates(
@@ -177,7 +177,7 @@ def make_risk(
     risk.add("entity", entity)
     if dataset.publisher.country != "zz":
         risk.add("country", dataset.publisher.country, origin=ORIGIN_METADATA)
-    risk.add("authority", dataset.publisher.name, origin=ORIGIN_METADATA)
+    risk.add("authority", dataset.publisher.name_en or dataset.publisher.name, origin=ORIGIN_METADATA)
     risk.add("sourceUrl", dataset.url, origin=ORIGIN_METADATA)
     risk.set("program", program_name)
     _apply_program_and_dates(

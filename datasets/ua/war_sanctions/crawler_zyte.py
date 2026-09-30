@@ -35,7 +35,6 @@ OPERATOR_LABEL = "The person in connection with whomsanctions have been applied"
 # Vessel-page labels we read elsewhere (links block) or intentionally don't emit. Anything
 # left in the label map that isn't here trips a warning, so layout drift is caught loudly.
 VESSEL_SKIP_LABELS = {
-    "Category",  # free-text restating the sanction reason
     "Length (m)",  # no FtM vessel property
     "Sanctions",  # sanctioning country, already on the Sanction via publisher
     "Sanctions lifted",
@@ -413,6 +412,11 @@ def crawl_vessel_page(context: Context, url: str) -> None:
     sanction = h.make_sanction(context, vessel, program_key="UA-WS-MARE")
     sanction.set("programUrl", url)
     sanction.add("sourceUrl", resource_links(doc))
+    # Category is a category and subcategory, e.g. "Transportation of military
+    # cargo" > "Weapons and military equipment".
+    category = value_lines(pairs.pop("Category", None))
+    if category:
+        sanction.add("reason", ": ".join(category))
     context.emit(vessel)
     context.emit(sanction)
 
