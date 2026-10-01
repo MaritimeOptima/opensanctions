@@ -10,8 +10,8 @@ from zavod import Context
 
 # Schemata we don't ingest. Documentation/Document/Event/Source are the source's
 # provenance graph (which reports mention an entity); we keep only the entity
-# network. Sanction designations are intentionally excluded from this dataset.
-IGNORE_SCHEMATA = ["Event", "Documentation", "Document", "Source", "Sanction"]
+# network. Maritime: we keep the Sanction designations, which upstream excludes.
+IGNORE_SCHEMATA = ["Event", "Documentation", "Document", "Source"]
 IGNORE_PROPS = ["proof"]
 
 # Relationship edges that only exist in the source's `edges` array (they have no
