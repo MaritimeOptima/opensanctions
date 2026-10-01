@@ -32,6 +32,9 @@ def parse_entity(context: Context, data: dict[str, Any]) -> None:
     entity.id = context.make_slug(data["id"])
 
     properties: dict[str, list[str]] = data.pop("properties", {})
+    if data["schema"] == "Sanction":
+        # Maritime: our export reads the sanction text from reason
+        properties["reason"] = properties.pop("description", [])
     for prop_name, values in properties.items():
         if prop_name in IGNORE_PROPS:
             continue
