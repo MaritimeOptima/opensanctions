@@ -1,0 +1,34 @@
+name: upstream-digest
+
+# Monthly digest of upstream opensanctions changes relevant to the maritime collection.
+# The digest is shown on the run's summary page in the Actions tab.
+# NOTE: scheduled workflows only run from the repository's default branch, so this file
+# must be on `main`. Set the repo variable TRACKED_REF if upstream is merged elsewhere
+# (e.g. a tweaks branch); it defaults to `main`.
+
+on:
+  schedule:
+    - cron: "0 7 1 * *" # 1st of each month, 07:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    env:
+      TRACKED_REF: ${{ vars.TRACKED_REF || 'main' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TRACKED_REF }}
+          fetch-depth: 0
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/opensanctions/opensanctions.git
+          git fetch --no-tags upstream main
+      - name: Build digest
+        run: python3 contrib/upstream_digest.py --ref HEAD --upstream upstream/main > digest.md
+      - name: Show digest in the run summary
+        run: cat digest.md >> "$GITHUB_STEP_SUMMARY"
