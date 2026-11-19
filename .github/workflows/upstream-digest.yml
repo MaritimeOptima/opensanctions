@@ -1,0 +1,64 @@
+name: upstream-digest
+
+# Monthly digest of upstream opensanctions changes relevant to the maritime collection.
+# NOTE: scheduled workflows only run from the repository's default branch, so this file
+# must be on `main`. Set the repo variable TRACKED_REF if upstream is merged elsewhere
+# (e.g. a tweaks branch); it defaults to `main`.
+#
+# The digest is shown in the run summary and opened as a pull request (the PR body is the
+# digest). Requires Settings > Actions > General > "Allow GitHub Actions to create and
+# approve pull requests". The PR is only a notification: close it, don't merge it.
+
+on:
+  schedule:
+    - cron: "0 7 1 * *" # 1st of each month, 07:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    env:
+      TRACKED_REF: ${{ vars.TRACKED_REF || 'main' }}
+      GH_TOKEN: ${{ github.token }}
+      DIGEST_BRANCH: upstream-digest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TRACKED_REF }}
+          fetch-depth: 0
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/opensanctions/opensanctions.git
+          git fetch --no-tags upstream main
+      - name: Build digest
+        run: |
+          python3 contrib/upstream_digest.py --ref HEAD --upstream upstream/main > digest.md
+          cat digest.md
+      - name: Show digest in the run summary
+        run: cat digest.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Open or update digest pull request
+        run: |
+          if ! grep -qE '^- `' digest.md; then
+            echo "Nothing relevant upstream."; exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$DIGEST_BRANCH"
+          cp digest.md UPSTREAM_DIGEST.md
+          git add UPSTREAM_DIGEST.md
+          git commit -m "Upstream digest $(date -u +%F)"
+          git push --force origin "$DIGEST_BRANCH"
+          number=$(gh pr list --head "$DIGEST_BRANCH" --state open --json number --jq '.[0].number')
+          if [ -n "$number" ]; then
+            gh pr edit "$number" --body-file digest.md
+          elif ! gh pr create --base "$TRACKED_REF" --head "$DIGEST_BRANCH" \
+              --title "Upstream digest: maritime changes" --body-file digest.md; then
+            # Usually: "Allow GitHub Actions to create and approve pull requests" is off.
+            url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$DIGEST_BRANCH/UPSTREAM_DIGEST.md"
+            echo "::warning::Could not open a PR. Digest is on branch $DIGEST_BRANCH: $url"
+            echo "Digest branch (PR creation failed): $url" >> "$GITHUB_STEP_SUMMARY"
+          fi
